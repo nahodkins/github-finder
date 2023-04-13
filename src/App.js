@@ -1,7 +1,7 @@
 import './App.css';
 import React, {Fragment} from "react";
 import axios from "axios";
-import {BrowserRouter as Router, Routes, Route} from "react-router-dom";
+import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 
 import Alert from "./component/layout/Alert";
 import About from "./component/pages/About";
@@ -22,14 +22,13 @@ class App extends React.Component {
     }
 
     sendGithubRequest = async (endpoint, parameters, resetLoading = true) => {
+        const clientId = process.env.REACT_APP_CLIENT_ID
+        const clientSecret = process.env.REACT_APP_CLIENT_SECRET
+        const url = endpoint + `?client_id=${clientId}&client_secret=${clientSecret}&` + parameters;
+
         this.setState({
             loading: true
         })
-
-        // const clientId = process.env.REACT_APP_CLIENT_ID
-        // const clientSecret = process.env.REACT_APP_CLIENT_SECRET
-        //`?client_id=${clientId}&client_secret=${clientSecret}&` +
-        const url = endpoint + "?" + parameters;
 
         const response = await axios.get(url)
 
@@ -43,6 +42,10 @@ class App extends React.Component {
     }
 
     async componentDidMount() {
+        await this.getUsers();
+    }
+
+    getUsers = async () => {
         const responseData = await this.sendGithubRequest(
             "https://api.github.com/users",
             ""
@@ -51,7 +54,6 @@ class App extends React.Component {
         this.setState({
             users: responseData,
             showClear: false,
-            user: {}
         })
     }
 
@@ -68,48 +70,34 @@ class App extends React.Component {
     }
 
     searchUser = async username => {
-        const responseData = await this.sendGithubRequest(
+        return await this.sendGithubRequest(
             `https://api.github.com/users/${username}`,
             "",
             false
-        )
-
-        this.setState({
-            user: responseData
-        })
+        );
     }
 
     getUserRepos = async username => {
-        const responseData = await this.sendGithubRequest(
+        return  await this.sendGithubRequest(
             `https://api.github.com/users/${username}/repos`,
             "per_page=5&sort=created:asc",
             false
         )
-
-        this.setState({
-            repos: responseData
-        })
     }
 
     getUserInfo = async username => {
-        await this.searchUser(username)
-        await this.getUserRepos(username)
+        const userData = await this.searchUser(username);
+        const reposData = await this.getUserRepos(username);
 
         this.setState({
+            user: userData,
+            repos: reposData,
             loading: false
         })
     }
 
     clearUsers = async () => {
-        const responseData = await this.sendGithubRequest(
-            "https://api.github.com/users",
-            ""
-        );
-
-        this.setState({
-            users: responseData,
-            showClear: false
-        })
+        await this.getUsers()
     }
 
     sendAlert = (message, type) => {
@@ -123,13 +111,19 @@ class App extends React.Component {
         setTimeout(() => this.setState({alert: null}), 5000)
     }
 
+    removeUserFromState = () => {
+        this.setState({
+            user: {}
+        });
+    }
+
     render() {
         const {users, loading, user, repos} = this.state
 
         return (
             <Router>
                 <div className='App'>
-                    <Navbar/>
+                    <Navbar removeUserFromState={this.removeUserFromState}/>
                     <div className="container">
                         <Alert alert={this.state.alert}/>
                         <Routes>
@@ -151,6 +145,7 @@ class App extends React.Component {
                                     user={user}
                                     repos={repos}
                                     loading={loading}
+                                    removeUserFromState={this.removeUserFromState}
                                 />
                             }/>
                         </Routes>

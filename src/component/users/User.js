@@ -2,8 +2,9 @@ import React, {Fragment, useEffect} from 'react';
 import {Link, useParams} from "react-router-dom";
 import Spinner from "../layout/Spinner";
 import PropTypes from "prop-types";
+import Repos from "../repos/Repos";
 
-const User = ({loading, user, repos, getUserInfo}) => {
+const User = ({loading, user, repos, getUserInfo, removeUserFromState}) => {
     const {login} = useParams()
 
     useEffect(() => {
@@ -23,12 +24,12 @@ const User = ({loading, user, repos, getUserInfo}) => {
         public_gists
     } = user
 
-    if (loading) {
+    if (loading || Object.keys(user).length === 0) {
         return <Spinner/>
     } else {
         return (
             <Fragment>
-                <Link to="/" className="btn btn-light">
+                <Link to="/" className="btn btn-light" onClick={removeUserFromState}>
                     Back to Search
                 </Link>
                 Hireable:{' '}
@@ -76,6 +77,7 @@ const User = ({loading, user, repos, getUserInfo}) => {
                     <div className="badge badge-danger">Public Repos: {public_repos}</div>
                     <div className="badge badge-dark">Public Gists: {public_gists}</div>
                 </div>
+                <Repos repos={repos}/>
             </Fragment>
         );
     }
