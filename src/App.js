@@ -21,9 +21,10 @@ class App extends React.Component {
     }
 
     sendGithubRequest = async (endpoint, parameters) => {
-        const clientId = process.env.REACT_APP_CLIENT_ID
-        const clientSecret = process.env.REACT_APP_CLIENT_SECRET
-        const url = endpoint + `?client_id=${clientId}&client_secret=${clientSecret}&` + parameters;
+        // const clientId = process.env.REACT_APP_CLIENT_ID
+        // const clientSecret = process.env.REACT_APP_CLIENT_SECRET
+        //`?client_id=${clientId}&client_secret=${clientSecret}&` +
+        const url = endpoint + "?" + parameters;
 
         this.setState({
             loading: true
@@ -39,7 +40,10 @@ class App extends React.Component {
     }
 
     async componentDidMount() {
-        const responseData = await this.sendGithubRequest("https://api.github.com/users");
+        const responseData = await this.sendGithubRequest(
+            "https://api.github.com/users",
+            ""
+        );
 
         this.setState({
             users: responseData,
@@ -61,7 +65,8 @@ class App extends React.Component {
 
     searchUser = async username => {
         const responseData = await this.sendGithubRequest(
-            `https://api.github.com/users/${username}`
+            `https://api.github.com/users/${username}`,
+            ""
         )
 
         this.setState({
@@ -70,7 +75,10 @@ class App extends React.Component {
     }
 
     clearUsers = async () => {
-        const responseData = await this.sendGithubRequest("https://api.github.com/users");
+        const responseData = await this.sendGithubRequest(
+            "https://api.github.com/users",
+            ""
+        );
 
         this.setState({
             users: responseData,
