@@ -17,26 +17,29 @@ class App extends React.Component {
         user: {},
         loading: false,
         showClear: false,
-        alert: null
+        alert: null,
+        repos: []
     }
 
-    sendGithubRequest = async (endpoint, parameters) => {
+    sendGithubRequest = async (endpoint, parameters, resetLoading = true) => {
+        this.setState({
+            loading: true
+        })
+
         // const clientId = process.env.REACT_APP_CLIENT_ID
         // const clientSecret = process.env.REACT_APP_CLIENT_SECRET
         //`?client_id=${clientId}&client_secret=${clientSecret}&` +
         const url = endpoint + "?" + parameters;
 
-        this.setState({
-            loading: true
-        })
+        const response = await axios.get(url)
 
-        const usersResponse = await axios.get(url)
+        if (resetLoading) {
+            this.setState({
+                loading: false
+            })
+        }
 
-        this.setState({
-            loading: false
-        })
-
-        return usersResponse.data;
+        return response.data;
     }
 
     async componentDidMount() {
@@ -47,7 +50,8 @@ class App extends React.Component {
 
         this.setState({
             users: responseData,
-            showClear: false
+            showClear: false,
+            user: {}
         })
     }
 
@@ -66,11 +70,33 @@ class App extends React.Component {
     searchUser = async username => {
         const responseData = await this.sendGithubRequest(
             `https://api.github.com/users/${username}`,
-            ""
+            "",
+            false
         )
 
         this.setState({
             user: responseData
+        })
+    }
+
+    getUserRepos = async username => {
+        const responseData = await this.sendGithubRequest(
+            `https://api.github.com/users/${username}/repos`,
+            "per_page=5&sort=created:asc",
+            false
+        )
+
+        this.setState({
+            repos: responseData
+        })
+    }
+
+    getUserInfo = async username => {
+        await this.searchUser(username)
+        await this.getUserRepos(username)
+
+        this.setState({
+            loading: false
         })
     }
 
@@ -98,7 +124,7 @@ class App extends React.Component {
     }
 
     render() {
-        const {users, loading, user} = this.state
+        const {users, loading, user, repos} = this.state
 
         return (
             <Router>
@@ -121,8 +147,9 @@ class App extends React.Component {
                             <Route exact path='/about' element={<About/>}/>
                             <Route exact path='/user/:login' element={
                                 <User
-                                    searchUser={this.searchUser}
+                                    getUserInfo={this.getUserInfo}
                                     user={user}
+                                    repos={repos}
                                     loading={loading}
                                 />
                             }/>
