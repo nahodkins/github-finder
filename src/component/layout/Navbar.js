@@ -1,7 +1,13 @@
 import PropTypes from 'prop-types'
 import {Link} from "react-router-dom";
+import {useContext} from "react";
+import GithubContext from "../../context/github/githubContext";
 
-const Navbar = ({icon, title, removeUserFromState}) => {
+const Navbar = ({icon, title}) => {
+
+    const githubContext = useContext(GithubContext)
+    const {removeUserFromState} = githubContext
+
     return (
         <nav className='navbar bg-primary'>
             <h1>
@@ -29,7 +35,6 @@ Navbar.defaultProps = {
 Navbar.propTypes = {
     title: PropTypes.string.isRequired,
     icon: PropTypes.string.isRequired,
-    removeUserFromState: PropTypes.func.isRequired,
 }
 
 export default Navbar
